@@ -1,9 +1,9 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                           QLineEdit, QPushButton, QLabel, QMessageBox, 
-                           QComboBox)
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout,
+                             QLineEdit, QPushButton, QLabel, QMessageBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+
 
 class RegistrationForm(QWidget):
     def __init__(self):
@@ -13,7 +13,7 @@ class RegistrationForm(QWidget):
     def initUI(self):
         # Налаштування основного вікна
         self.setWindowTitle('Реєстрація')
-        self.setFixedSize(400, 500)
+        self.setFixedSize(400, 300)  # Ще менший розмір вікна
         self.setStyleSheet("""
             QWidget {
                 background-color: #f0f0f0;
@@ -42,8 +42,8 @@ class RegistrationForm(QWidget):
             }
         """)
 
-        # Створення головного layout
-        self.main_layout = QVBoxLayout()
+        # Створення layouts
+        self.main_layout = QVBoxLayout()  # Основний макет
         self.main_layout.setSpacing(15)
 
         # Заголовок
@@ -53,19 +53,8 @@ class RegistrationForm(QWidget):
         self.main_layout.addWidget(title)
 
         # Поля форми
-        self.username = self.create_input_field("Ім'я користувача:")
-        self.email = self.create_input_field("Email:")
         self.password = self.create_input_field("Пароль:", is_password=True)
         self.confirm_password = self.create_input_field("Підтвердження пароля:", is_password=True)
-
-        # Додаткові поля
-        self.age = QComboBox()
-        self.age.addItems([str(i) for i in range(18, 101)])
-        age_layout = QHBoxLayout()
-        age_label = QLabel('Вік:')
-        age_layout.addWidget(age_label)
-        age_layout.addWidget(self.age)
-        self.main_layout.addLayout(age_layout)
 
         # Кнопка реєстрації
         self.register_btn = QPushButton('Зареєструватися')
@@ -73,46 +62,42 @@ class RegistrationForm(QWidget):
         self.register_btn.setCursor(Qt.PointingHandCursor)
         self.main_layout.addWidget(self.register_btn)
 
-        # Встановлення головного layout
+        # Додавання основного макета до вікна
         self.setLayout(self.main_layout)
 
     def create_input_field(self, label_text, is_password=False):
         layout = QVBoxLayout()
         label = QLabel(label_text)
 
-        field = QLineEdit()
         if is_password:
+            field = QLineEdit()
             field.setEchoMode(QLineEdit.Password)
+        else:
+            field = QLineEdit()
 
         layout.addWidget(label)
         layout.addWidget(field)
-        self.main_layout.addLayout(layout)
+        self.main_layout.addLayout(layout)  # Додавання до основного макета
         return field
 
     def register(self):
         # Перевірка заповнення полів
-        if not all([self.username.text(), self.email.text(),
-                   self.password.text(), self.confirm_password.text()]):
+        if not all([self.password.text(), self.confirm_password.text()]):
             QMessageBox.warning(self, 'Помилка',
-                              'Будь ласка, заповніть всі поля!')
+                                'Будь ласка, заповніть всі поля!')
             return
 
         # Перевірка паролів
         if self.password.text() != self.confirm_password.text():
             QMessageBox.warning(self, 'Помилка',
-                              'Паролі не співпадають!')
-            return
-
-        # Перевірка формату email
-        if '@' not in self.email.text():
-            QMessageBox.warning(self, 'Помилка',
-                              'Введіть коректний email!')
+                                'Паролі не співпадають!')
             return
 
         # Успішна реєстрація
         QMessageBox.information(self, 'Успіх',
-                              'Реєстрація пройшла успішно!')
+                                'Реєстрація пройшла успішно!')
         self.close()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
