@@ -1,0 +1,9 @@
+../Core/Src/main.c:31:6:Flash_Write	2
+../Core/Src/main.c:40:6:Flash_Read	2
+../Core/Src/main.c:46:6:Flash_Erase	2
+../Core/Src/main.c:65:6:HAL_UART_RxCpltCallback	6
+../Core/Src/main.c:109:5:main	1
+../Core/Src/main.c:131:6:SystemClock_Config	3
+../Core/Src/main.c:165:13:MX_USART1_UART_Init	2
+../Core/Src/main.c:184:13:MX_GPIO_Init	1
+../Core/Src/main.c:193:6:Error_Handler	1
