@@ -1,9 +1,0 @@
-../Core/Src/main.c:31:6:Flash_Write	48	static
-../Core/Src/main.c:40:6:Flash_Read	32	static
-../Core/Src/main.c:46:6:Flash_Erase	32	static
-../Core/Src/main.c:65:6:HAL_UART_RxCpltCallback	104	static
-../Core/Src/main.c:109:5:main	272	static
-../Core/Src/main.c:131:6:SystemClock_Config	80	static
-../Core/Src/main.c:165:13:MX_USART1_UART_Init	8	static
-../Core/Src/main.c:184:13:MX_GPIO_Init	16	static
-../Core/Src/main.c:193:6:Error_Handler	8	static,ignoring_inline_asm
