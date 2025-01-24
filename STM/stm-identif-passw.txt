@@ -21,7 +21,7 @@ uint8_t rx_data[1];          // Буфер для прийому одного б
 uint8_t rx_buffer[256];      // Буфер для зберігання прийнятих команд
 uint8_t rand_buffer[256];
 uint8_t rx_index = 0;        // Поточний індекс для запису в rx_buffer
-uint8_t *hexCode[8]; // Глобальна змінна для зберігання коду у 32-ковому форматі
+uint16_t *hexCode[8]; // Глобальна змінна для зберігання коду у 32-ковому форматі
 
 
 //uint8_t generated_password[16] = {0}; // Зберігання згенерованого пароля
@@ -110,7 +110,32 @@ void generate_random_code() {
     HAL_UART_Transmit(&huart1, (uint8_t *)rand_pass_buffer, rand_pass_buffer_length, HAL_MAX_DELAY);
 
     Flash_Erase(FLASH_PASS_START_ADDR, FLASH_PASS_END_ADDR); // Очищення флеш
-    Flash_Write(FLASH_PASS_START_ADDR, (uint8_t *)hexCode, 8); // Запис пароля у флеш
+
+    // Щільний запис пароля у флеш
+       Flash_Write_Packed(FLASH_PASS_START_ADDR, (uint8_t *)hexCode, strlen((char *)hexCode));
+}
+
+
+void Flash_Write_Packed(uint32_t startAddress, uint8_t *data, uint16_t length) {
+    HAL_FLASH_Unlock(); // Розблокування флеш-пам'яті
+
+    uint32_t word = 0; // Буфер для 32-бітного слова
+    uint8_t byte_index = 0;
+
+    for (uint16_t i = 0; i < length; i++) {
+        word |= ((uint32_t)data[i] << (byte_index * 8)); // Додаємо байт у відповідну позицію
+        byte_index++;
+
+        // Коли буфер заповнений (4 байти) або це останній байт
+        if (byte_index == 4 || i == length - 1) {
+            HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, startAddress, word); // Записуємо слово
+            startAddress += 4; // Зсуваємося до наступного 4-байтного блоку
+            word = 0;          // Скидаємо буфер
+            byte_index = 0;    // Скидаємо індекс
+        }
+    }
+
+    HAL_FLASH_Lock(); // Блокування флеш-пам'яті
 }
 
 
@@ -160,23 +185,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 //                		HAL_UART_Transmit(&huart1, (uint8_t *)"Data written to flash\n\r", 24, HAL_MAX_DELAY);
 //                	}
             } else if (strncmp((char *)rx_buffer, "Field_for_password", 18) == 0) {
-//            	while(1) {
+
             			uint8_t *input_password = (uint8_t *)(rx_buffer + 19);
             	        uint16_t input_password_length = strlen((char *)input_password);
+            	        input_password[input_password_length] = '\0'; // Гарантуємо завершення рядка
 
-//                    char input_password[9]; // Буфер для введення пароля
-//                    HAL_UART_Transmit(&huart1, (uint8_t *)"Your pass: ", 16, HAL_MAX_DELAY);
-//                    HAL_UART_Receive(&huart1, (uint8_t *)input_password, 8, HAL_MAX_DELAY);
-//                    input_password[8] = '\0'; // Гарантуємо завершення строки
+            	        uint8_t pass_packet[9];
 
-                    if (strcmp((char *)input_password, (char *)last_generated_password) == 0) {
+            	        Flash_Read(FLASH_PASS_START_ADDR, pass_packet, 8);
+
+            	        pass_packet[8] = '\0'; // Додаємо завершальний символ
+
+//            	        HAL_UART_Transmit(&huart1, input_password, 8, HAL_MAX_DELAY);
+
+                    if (strcmp((char *)input_password, (char *)pass_packet) == 0) {
                         HAL_UART_Transmit(&huart1, (uint8_t *)"correct\n\r", 9, HAL_MAX_DELAY);
-//                        break;
+
                     } else {
                         HAL_UART_Transmit(&huart1, (uint8_t *)"SBU yide, viy-viy\n\r", 19, HAL_MAX_DELAY);
-//                        break;
+
                     }
-//                }
+
                     Clear_Buffer(rx_buffer, sizeof(rx_buffer));
 
 
