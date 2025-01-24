@@ -1,37 +1,52 @@
-﻿#include <stdint.h>
-#include <stdio.h>
+﻿#include "main.h"
+#include "bcc.h" // Модуль для розрахунку BCC
+#include "usart.h" // Драйвер UART
 
-// Function to calculate BCC
-uint8_t CalculateBCC(const uint8_t* data, uint16_t length) {
-    uint8_t bcc = 0x00; //The initial value of BCC
-    printf("Initial BCC: 0x%02X\n", bcc);
-
-    for (uint16_t i = 0; i < length; i++) {
-        printf("Data[%d]: 0x%02X, BCC before XOR: 0x%02X\n", i, data[i], bcc);
-        bcc ^= data[i]; // XOR each byte with the current BCC value
-        printf("BCC after XOR: 0x%02X\n", bcc);
+void UART_SendString(char* str) {
+    while (*str) {
+        HAL_UART_Transmit(&huart1, (uint8_t*)str, 1, HAL_MAX_DELAY);
+        str++;
     }
-
-    return bcc;
 }
 
-int main() {
-    //Enter arbitrary data
-    uint8_t data[] = { 0x11, 0x36, 0x56, 0x78, 0x9A }; // Replace the values ​​with any
+void UART_SendHex(uint8_t value) {
+    char hexStr[5]; // Формат: "0xXX "
+    sprintf(hexStr, "0x%02X ", value);
+    UART_SendString(hexStr);
+}
+
+void UART_SendNewLine(void) {
+    char newline[] = "\r\n";
+    HAL_UART_Transmit(&huart1, (uint8_t*)newline, sizeof(newline) - 1, HAL_MAX_DELAY);
+}
+
+int main(void) {
+    // Ініціалізація HAL та апаратного забезпечення
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+    MX_USART1_UART_Init();
+
+    // Дані для розрахунку BCC
+    uint8_t data[] = { 0x11, 0x36, 0x56, 0x78, 0x9A }; // Ваші дані
     uint16_t length = sizeof(data) / sizeof(data[0]);
 
-    // Output of the initial data array
-    printf("Data array: ");
+    // Вивід початкового масиву через UART
+    UART_SendString("Data array: ");
     for (uint16_t i = 0; i < length; i++) {
-        printf("0x%02X ", data[i]);
+        UART_SendHex(data[i]);
     }
-    printf("\n");
+    UART_SendNewLine();
 
-    // Calculation of BCC
+    // Розрахунок BCC
     uint8_t bcc = CalculateBCC(data, length);
 
-    // Conclusion of the final result
-    printf("Final BCC: 0x%02X\n", bcc);
+    // Вивід фінального результату
+    UART_SendString("Final BCC: ");
+    UART_SendHex(bcc);
+    UART_SendNewLine();
 
-    return 0;
+    // Основний цикл програми
+    while (1) {
+    }
 }
